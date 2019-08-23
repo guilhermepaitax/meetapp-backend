@@ -1,0 +1,8 @@
+{
+  "name": "meetapp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/guilhermepaitax/Meetapp.git",
+  "author": "guilhermepaitax <[guilhermepaitax16@gmail.com]>",
+  "license": "MIT"
+}

@@ -17,7 +17,7 @@ class UserController {
     });
   }
 
-  // async update(req, res) {}
+  // async update(req, res) {} { id, name, email }
 }
 
 export default new UserController();

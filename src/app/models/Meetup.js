@@ -6,7 +6,7 @@ class Meetup extends Model {
       {
         title: Sequelize.STRING,
         description: Sequelize.STRING,
-        locale: Sequelize.STRING,
+        location: Sequelize.STRING,
         date: Sequelize.DATE,
       },
       {

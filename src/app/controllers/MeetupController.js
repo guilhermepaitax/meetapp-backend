@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-
+import { isBefore, parseISO, startOfHour } from 'date-fns';
 import Meetup from '../models/Meetup';
 
 class MeetupController {
@@ -14,6 +14,17 @@ class MeetupController {
 
     if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ error: 'Validation fails' });
+    }
+
+    /**
+     * Check for past dates
+     */
+    const { date } = req.body;
+
+    const hourStart = startOfHour(parseISO(date));
+
+    if (isBefore(hourStart, new Date())) {
+      return res.status(401).json({ error: 'Past dates are not permitted' });
     }
 
     const meetup = await Meetup.create({ ...req.body, user_id: req.userId });

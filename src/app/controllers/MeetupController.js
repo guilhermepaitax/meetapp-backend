@@ -31,6 +31,53 @@ class MeetupController {
 
     return res.json(meetup);
   }
+
+  async update(req, res) {
+    const existsMeetup = await Meetup.findByPk(req.params.id);
+
+    const { title, description, location, date, banner_id } = req.body;
+
+    /**
+     * Check if the meetup exists
+     */
+    if (!existsMeetup) {
+      return res.status(400).json({ error: 'Meetup not found' });
+    }
+
+    /**
+     * Check if is the same user that created a meetup
+     */
+    if (existsMeetup.user_id !== req.userId) {
+      return res
+        .status(401)
+        .json({ error: 'You can only update your meetups' });
+    }
+
+    /**
+     * Check for past dates
+     */
+    const hourStart = startOfHour(parseISO(existsMeetup.date));
+
+    if (isBefore(hourStart, new Date())) {
+      return res.status(401).json({ error: 'You can not update past meetups' });
+    }
+
+    const newHourStart = startOfHour(parseISO(date));
+
+    if (isBefore(newHourStart, new Date())) {
+      return res.status(401).json({ error: 'You can not set past dates' });
+    }
+
+    const meetup = await existsMeetup.update({
+      title,
+      description,
+      location,
+      date,
+      banner_id,
+    });
+
+    return res.json(meetup);
+  }
 }
 
 export default new MeetupController();

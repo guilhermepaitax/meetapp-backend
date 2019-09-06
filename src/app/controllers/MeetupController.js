@@ -24,7 +24,7 @@ class MeetupController {
     const hourStart = startOfHour(parseISO(date));
 
     if (isBefore(hourStart, new Date())) {
-      return res.status(401).json({ error: 'Past dates are not permitted' });
+      return res.status(401).json({ error: 'Meetup date invalid' });
     }
 
     const meetup = await Meetup.create({ ...req.body, user_id: req.userId });
@@ -33,6 +33,18 @@ class MeetupController {
   }
 
   async update(req, res) {
+    const schema = Yup.object().schema({
+      title: Yup.string(),
+      description: Yup.string(),
+      date: Yup.date(),
+      location: Yup.string(),
+      banner_id: Yup.number(),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: 'Validation fails' });
+    }
+
     const existsMeetup = await Meetup.findByPk(req.params.id);
 
     const { title, description, location, date, banner_id } = req.body;
@@ -41,31 +53,27 @@ class MeetupController {
      * Check if the meetup exists
      */
     if (!existsMeetup) {
-      return res.status(400).json({ error: 'Meetup not found' });
+      return res.status(400).json({ error: 'Meetup not found.' });
     }
 
     /**
      * Check if is the same user that created a meetup
      */
     if (existsMeetup.user_id !== req.userId) {
-      return res
-        .status(401)
-        .json({ error: 'You can only update your meetups' });
+      return res.status(401).json({ error: 'Can only update your meetups.' });
     }
 
     /**
      * Check for past dates
      */
-    const hourStart = startOfHour(parseISO(existsMeetup.date));
-
-    if (isBefore(hourStart, new Date())) {
-      return res.status(401).json({ error: 'You can not update past meetups' });
+    if (existsMeetup.past) {
+      return res.status(401).json({ error: "Can't update past meetups." });
     }
 
-    const newHourStart = startOfHour(parseISO(date));
+    const hourStart = startOfHour(parseISO(date));
 
-    if (isBefore(newHourStart, new Date())) {
-      return res.status(401).json({ error: 'You can not set past dates' });
+    if (isBefore(hourStart, new Date())) {
+      return res.status(401).json({ error: 'Meetup date invalid' });
     }
 
     const meetup = await existsMeetup.update({
@@ -77,6 +85,35 @@ class MeetupController {
     });
 
     return res.json(meetup);
+  }
+
+  async delete(req, res) {
+    const meetup = await Meetup.findByPk(req.params.id);
+
+    /**
+     * Check if the meetup exists
+     */
+    if (!meetup) {
+      return res.status(400).json({ error: 'Meetup not found.' });
+    }
+
+    /**
+     * Check if is the same user that created a meetup
+     */
+    if (meetup.user_id !== req.userId) {
+      return res.status(401).json({ error: 'Not authorized.' });
+    }
+
+    /**
+     * Check for past dates
+     */
+    if (meetup.past) {
+      return res.status(401).json({ error: "Can't delete past meetups." });
+    }
+
+    meetup.destroy();
+
+    return res.json();
   }
 }
 

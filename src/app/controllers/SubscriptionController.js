@@ -1,3 +1,6 @@
+import { format } from 'date-fns';
+import pt from 'date-fns/locale/pt';
+
 import Meetup from '../models/Meetup';
 import Subscription from '../models/Subscription';
 import User from '../models/User';
@@ -26,7 +29,7 @@ class SubscriptionController {
     /**
      * Check if is the same user that created a meetup
      */
-    if (meetup.user_id !== req.userId) {
+    if (meetup.user_id === req.userId) {
       return res
         .status(401)
         .json({ error: "Can't subscribe in your meetups." });
@@ -81,6 +84,11 @@ class SubscriptionController {
         .json({ error: "Can't subscribe to two meetups at the same time" });
     }
 
+    /**
+     * Sending email
+     */
+    const { name, email } = await User.findByPk(req.userId);
+
     const subscription = await Subscription.create({
       user_id: req.userId,
       meetup_id: req.params.id,
@@ -89,7 +97,17 @@ class SubscriptionController {
     Mail.sendMail({
       to: `${meetup.user.name} <${meetup.user.email}>`,
       subject: `Nova inscrição no ${meetup.title}`,
-      text: 'Você tem um novo inscrito.',
+      template: 'subscription',
+      context: {
+        meetup: meetup.title,
+        location: meetup.location,
+        date: format(meetup.date, "'dia' dd 'de' MMMM', às' H:mm'h'", {
+          locale: pt,
+        }),
+        user: meetup.user.name,
+        name,
+        email,
+      },
     });
 
     return res.json(subscription);

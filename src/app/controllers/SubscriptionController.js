@@ -1,9 +1,20 @@
 import Meetup from '../models/Meetup';
 import Subscription from '../models/Subscription';
+import User from '../models/User';
+
+import Mail from '../../lib/Mail';
 
 class SubscriptionController {
   async store(req, res) {
-    const meetup = await Meetup.findByPk(req.params.id);
+    const meetup = await Meetup.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['name', 'email'],
+        },
+      ],
+    });
 
     /**
      * Check if the meetup exists
@@ -73,6 +84,12 @@ class SubscriptionController {
     const subscription = await Subscription.create({
       user_id: req.userId,
       meetup_id: req.params.id,
+    });
+
+    Mail.sendMail({
+      to: `${meetup.user.name} <${meetup.user.email}>`,
+      subject: `Nova inscrição no ${meetup.title}`,
+      text: 'Você tem um novo inscrito.',
     });
 
     return res.json(subscription);

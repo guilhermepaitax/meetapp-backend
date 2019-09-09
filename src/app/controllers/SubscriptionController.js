@@ -94,22 +94,6 @@ class SubscriptionController {
       meetup_id: req.params.id,
     });
 
-    Mail.sendMail({
-      to: `${meetup.user.name} <${meetup.user.email}>`,
-      subject: `Nova inscrição no ${meetup.title}`,
-      template: 'subscription',
-      context: {
-        meetup: meetup.title,
-        location: meetup.location,
-        date: format(meetup.date, "'dia' dd 'de' MMMM', às' H:mm'h'", {
-          locale: pt,
-        }),
-        user: meetup.user.name,
-        name,
-        email,
-      },
-    });
-
     return res.json(subscription);
   }
 }

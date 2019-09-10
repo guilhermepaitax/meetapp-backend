@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import pt from 'date-fns/locale/pt';
 import Mail from '../../lib/Mail';
 
@@ -17,9 +17,13 @@ class SubscriptionMail {
       context: {
         meetup: meetup.title,
         location: meetup.location,
-        date: format(meetup.date, "'dia' dd 'de' MMMM', às' H:mm'h'", {
-          locale: pt,
-        }),
+        date: format(
+          parseISO(meetup.date),
+          "'dia' dd 'de' MMMM', às' H:mm'h'",
+          {
+            locale: pt,
+          }
+        ),
         user: meetup.user.name,
         name,
         email,
